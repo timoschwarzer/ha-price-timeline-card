@@ -660,7 +660,6 @@ class PriceTimelineCard extends LitElement {
 
   _getFutureCheapPhases(phasesObj) {
     const now = new Date();
-    const ONE_HOUR = 60 * 60 * 1000;
     const result = {};
 
     for (const [day, phases] of Object.entries(phasesObj)) {
@@ -671,7 +670,7 @@ class PriceTimelineCard extends LitElement {
         const end = new Date(phase.end);
         const duration = end - start;
 
-        if (end > now && duration >= ONE_HOUR) {
+        if (end > now) {
 
           filtered.push({
             start: _localISODateTime(start),
