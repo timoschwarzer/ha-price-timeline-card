@@ -691,11 +691,15 @@ class PriceTimelineCard extends LitElement {
   
      _buildGroupedTimeSlots(offset) {
       const result = {};
-      this.config.cheap_time_sources.forEach((entityId) => {
+      this.config.cheap_time_sources.forEach((entityIdOrConfig) => {
+        const entityId = typeof entityIdOrConfig === "string"
+          ? entityIdOrConfig
+          : entityIdOrConfig.entity
+
         const entity = this._hass.states[entityId];
         if (!entity || !entity.attributes || !Array.isArray(entity.attributes.data)) return;
     
-        const name = entity.attributes.friendly_name || entityId;
+        const name = entityIdOrConfig.entity || entity.attributes.friendly_name || entityId;
     
         entity.attributes.data.forEach((item) => {
           const start = item.start_time;
