@@ -699,7 +699,7 @@ class PriceTimelineCard extends LitElement {
         const entity = this._hass.states[entityId];
         if (!entity || !entity.attributes || !Array.isArray(entity.attributes.data)) return;
     
-        const name = entityIdOrConfig.entity || entity.attributes.friendly_name || entityId;
+        const name = entityIdOrConfig.name || entity.attributes.friendly_name || entityId;
     
         entity.attributes.data.forEach((item) => {
           const start = item.start_time;
