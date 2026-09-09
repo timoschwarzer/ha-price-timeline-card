@@ -462,10 +462,10 @@ class PriceTimelineCard extends LitElement {
   }
 
   _getDataTimeLabel(data, index) {
-    const startTime = new Date(data[index]?.start_time);
+    const startTime = new Date(data[index]?.start);
     const endTime =
       index + 1 < data.length
-        ? new Date(data[index + 1].start_time)
+        ? new Date(data[index + 1].start)
         : new Date(startTime.getTime() + 15 * 60000);
 
     const format = (date) =>
@@ -478,7 +478,7 @@ class PriceTimelineCard extends LitElement {
     let bestIndex = 0;
     let bestDiff = Number.POSITIVE_INFINITY;
     for (let i = 0; i < data.length; i++) {
-      const start = new Date(data[i].start_time);
+      const start = new Date(data[i].start);
       const diff = now - start;
       if (diff >= 0 && diff < bestDiff) {
         bestDiff = diff;
@@ -497,7 +497,7 @@ class PriceTimelineCard extends LitElement {
       const tomorrow = new Date(now);
       tomorrow.setDate(now.getDate() + 1);
       const filtered = allData.filter(item => {
-        const date = new Date(item.start_time);
+        const date = new Date(item.start);
         return (
           this._isSameDay(date, yesterday) ||
           this._isSameDay(date, now) ||
@@ -509,7 +509,7 @@ class PriceTimelineCard extends LitElement {
       const date = new Date();
       date.setDate(date.getDate() + offset);
       return allData.filter(item => {
-        const start = new Date(item.start_time);
+        const start = new Date(item.start);
         return start.getFullYear() === date.getFullYear() &&
           start.getMonth() === date.getMonth() &&
           start.getDate() === date.getDate();
@@ -586,7 +586,7 @@ class PriceTimelineCard extends LitElement {
     const byDay = {};
 
     for (const item of data) {
-      const d = new Date(item.start_time);
+      const d = new Date(item.start);
       const date = _localYYYYMMDD(d);
 
       if (!byDay[date]) byDay[date] = [];
@@ -616,10 +616,10 @@ class PriceTimelineCard extends LitElement {
 
     const timesByDay = {};
     for (const item of data) {
-      const d = new Date(item.start_time);
+      const d = new Date(item.start);
       const date = _localYYYYMMDD(d);
       if (!timesByDay[date]) timesByDay[date] = [];
-      timesByDay[date].push(new Date(item.start_time));
+      timesByDay[date].push(new Date(item.start));
     }
 
     const result = {};
@@ -705,8 +705,8 @@ class PriceTimelineCard extends LitElement {
         const name = entityIdOrConfig.name || entity.attributes.friendly_name || entityId;
 
         entity.attributes[attributeName].forEach((item) => {
-          const start = item.start_time;
-          const end = item.end_time;
+          const start = item.start;
+          const end = item.end;
 
           const dateKey = start.substring(0, 10); // "YYYY-MM-DD"
 
@@ -745,7 +745,7 @@ class PriceTimelineCard extends LitElement {
   _generateChart(data,dataIntervalls, currentIndex, average, lang) {
     const rawData = data;
     const parsed = rawData.map(d => ({
-      time: new Date(d.start_time),
+      time: new Date(d.start),
       cent: d.price_per_kwh * 100
     }));
     parsed.sort((a, b) => a.time - b.time);
@@ -753,7 +753,7 @@ class PriceTimelineCard extends LitElement {
     const start = parsed[0].time;
     const end = parsed[parsed.length - 1].time;
     const now = new Date();
-    const hasTomorrow = rawData.some(d => new Date(d.start_time).getDate() !== start.getDate());
+    const hasTomorrow = rawData.some(d => new Date(d.start).getDate() !== start.getDate());
     const width = 500;
     const height = 300;
     const margin = { left: 42, right: 20, top: 30, bottom: 35 };
@@ -901,7 +901,7 @@ class PriceTimelineCard extends LitElement {
     svg.appendChild(vLine);
 
     // now line
-    const xNowTime = xFor(new Date(data[currentIndex].start_time));
+    const xNowTime = xFor(new Date(data[currentIndex].start));
     const vLine2 = document.createElementNS(svgNS, "line");
     vLine2.setAttribute("x1", xNowTime);
     vLine2.setAttribute("x2", xNowTime);
@@ -923,7 +923,7 @@ class PriceTimelineCard extends LitElement {
       leftLabel.setAttribute("font-size", "12px");
       leftLabel.setAttribute("font-weight", "600");
       leftLabel.setAttribute("text-anchor", "middle");
-      leftLabel.textContent = (now >= new Date(data[Math.round(data.length/2)].start_time)) ? localize("editor_start_yesterday", lang) : localize("editor_start_today", lang);
+      leftLabel.textContent = (now >= new Date(data[Math.round(data.length/2)].start)) ? localize("editor_start_yesterday", lang) : localize("editor_start_today", lang);
       svg.appendChild(leftLabel);
       const rightLabel = document.createElementNS(svgNS, "text");
       rightLabel.setAttribute("x", xMid + innerW / 4);
@@ -932,7 +932,7 @@ class PriceTimelineCard extends LitElement {
       rightLabel.setAttribute("font-size", "12px");
       rightLabel.setAttribute("font-weight", "600");
       rightLabel.setAttribute("text-anchor", "middle");
-      rightLabel.textContent = (now >= new Date(data[Math.round(data.length/2)].start_time)) ? localize("editor_start_today", lang) : localize("editor_start_tomorrow", lang);
+      rightLabel.textContent = (now >= new Date(data[Math.round(data.length/2)].start)) ? localize("editor_start_today", lang) : localize("editor_start_tomorrow", lang);
       svg.appendChild(rightLabel);
     } else {
       const todayLabel = document.createElementNS(svgNS, "text");
@@ -947,7 +947,7 @@ class PriceTimelineCard extends LitElement {
     }
     if (now >= start && now <= end) {
 
-      const cx = xFor(new Date(data[currentIndex].start_time))
+      const cx = xFor(new Date(data[currentIndex].start))
       const cy = yFor(data[currentIndex].price_per_kwh * 100)
 
       const color = (data[currentIndex].price_per_kwh * 100) > average ? "--orange" : "--turquoise";
@@ -1197,7 +1197,7 @@ class PriceTimelineCard extends LitElement {
   //---------------------
   _renderTimeline(data, currentIndex, avg, lang) {
     const now = new Date();
-    const slotMinutes = data.length > 1 ? Math.round((new Date(data[1].start_time) - new Date(data[0].start_time)) / 60000) : 60;
+    const slotMinutes = data.length > 1 ? Math.round((new Date(data[1].start) - new Date(data[0].start)) / 60000) : 60;
     const minutes = now.getMinutes();
     const progress = slotMinutes === 60 ? (minutes / slotMinutes) : ((minutes % slotMinutes) / 15);
 
