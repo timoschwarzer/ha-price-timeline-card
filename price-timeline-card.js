@@ -489,7 +489,7 @@ class PriceTimelineCard extends LitElement {
   }
 
   _getDataForOffset(entity, offset = 0) {
-    const allData = entity?.attributes?.data || [];
+    const allData = entity?.attributes?.[this.config.attribute ?? "data"] || [];
     if (offset === 2) {
       const now = new Date();
       const yesterday = new Date(now);
@@ -687,30 +687,33 @@ class PriceTimelineCard extends LitElement {
 
     return result;
   }
-  
-  
+
+
      _buildGroupedTimeSlots(offset) {
       const result = {};
       this.config.cheap_time_sources.forEach((entityIdOrConfig) => {
         const entityId = typeof entityIdOrConfig === "string"
           ? entityIdOrConfig
           : entityIdOrConfig.entity
+        const attributeName = typeof entityIdOrConfig === "string"
+          ? "data"
+          : entityIdOrConfig.attribute
 
         const entity = this._hass.states[entityId];
-        if (!entity || !entity.attributes || !Array.isArray(entity.attributes.data)) return;
-    
+        if (!entity || !entity.attributes || !Array.isArray(entity.attributes[attributeName])) return;
+
         const name = entityIdOrConfig.name || entity.attributes.friendly_name || entityId;
-    
-        entity.attributes.data.forEach((item) => {
+
+        entity.attributes[attributeName].forEach((item) => {
           const start = item.start_time;
           const end = item.end_time;
-    
+
           const dateKey = start.substring(0, 10); // "YYYY-MM-DD"
-    
+
           if (!result[dateKey]) {
             result[dateKey] = [];
           }
-    
+
           result[dateKey].push({
             start,
             end,
@@ -722,7 +725,7 @@ class PriceTimelineCard extends LitElement {
       Object.keys(result).forEach((date) => {
         result[date].sort((a, b) => new Date(a.start) - new Date(b.start));
       });
-      
+
       let futurePhases = this._getFutureCheapPhases(result);
       if(offset === 0 || offset === 1){
       const date = new Date();
@@ -738,7 +741,7 @@ class PriceTimelineCard extends LitElement {
       }
       return futurePhases;
     }
-    
+
   _generateChart(data,dataIntervalls, currentIndex, average, lang) {
     const rawData = data;
     const parsed = rawData.map(d => ({
@@ -775,7 +778,7 @@ class PriceTimelineCard extends LitElement {
 
       color = color.trim();
 
-      // rgb(...) ,  rgba(...) 
+      // rgb(...) ,  rgba(...)
       if (/^rgba?\(/i.test(color)) {
         const match = color.match(/\d+,\s*\d+,\s*\d+/);
         return match ? match[0] : "255,255,255";
@@ -1012,19 +1015,19 @@ class PriceTimelineCard extends LitElement {
         svg.appendChild(text);
       });
     }
-    
+
    // phases
     let index = 0;
     if (this.config.cheap_times === true) {
-      const labelsByStart = {}; 
-    
+      const labelsByStart = {};
+
       for (const [day, intervals] of Object.entries(dataIntervalls)) {
         for (const { start, end } of intervals) {
           const startDate = new Date(start);
           const endDate = new Date(end);
           const xStart = xFor(startDate);
           const xEnd = xFor(endDate);
-    
+
           const rect = document.createElementNS(svgNS, "rect");
           rect.setAttribute("x", xStart);
           rect.setAttribute("y", margin.top);
@@ -1033,16 +1036,16 @@ class PriceTimelineCard extends LitElement {
           rect.setAttribute("fill", "var(--turquoise)");
           rect.setAttribute("fill-opacity", "0.2");
           svg.insertBefore(rect, svg.firstChild);
-    
 
-          const key = startDate.getTime(); 
+
+          const key = startDate.getTime();
           if (!labelsByStart[key]) {
             labelsByStart[key] = [];
           }
           labelsByStart[key].push(++index);
         }
       }
-    
+
 
       for (const [key, indices] of Object.entries(labelsByStart)) {
         const startDate = new Date(Number(key));
@@ -1057,7 +1060,7 @@ class PriceTimelineCard extends LitElement {
         svg.appendChild(label);
       }
     }
-    
+
 
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayEnd = new Date(todayStart);
@@ -1079,11 +1082,11 @@ class PriceTimelineCard extends LitElement {
     this._dayOffset = this._dayOffset === 0 ? 1 : 0;
     this.requestUpdate();
   }
-  
+
 
   // --------------------
   //NO DATA
-  //---------------------   
+  //---------------------
   _renderNoData(lang) {
     return html`
             <div class="ticker-container">
@@ -1098,7 +1101,7 @@ class PriceTimelineCard extends LitElement {
 
   // --------------------
   //NO PRICES
-  //---------------------   
+  //---------------------
   _renderNoPrices(lang) {
     return html`<div>${localize("no_data_prices", lang)}</div>`;
   }
@@ -1106,14 +1109,14 @@ class PriceTimelineCard extends LitElement {
 
   // --------------------
   //NO ATTRIBUTE
-  //---------------------   
+  //---------------------
   _renderNoAttributes(lang) {
     return html`<div>${localize("no_data_attributes", lang)}</div>`;
   }
 
   // --------------------
   //TOGGLER
-  //---------------------   
+  //---------------------
   _renderToggler(lang) {
     const activeClass = this._dayOffset === 0 ? "active-today" : "active-tomorrow";
 
@@ -1138,7 +1141,7 @@ class PriceTimelineCard extends LitElement {
         </div>
        `
   }
-  
+
 
   // --------------------
   //CHEAPTIMES
@@ -1322,7 +1325,7 @@ class PriceTimelineCard extends LitElement {
     }
 
     // no data attribute
-    if (!entity || !entity.attributes?.data) {
+    if (!entity || !entity.attributes?.[this.config.attribute ?? "data"]) {
       return html`<ha-card>${this._renderNoAttributes(lang)}</ha-card>`;
     }
 
@@ -1353,7 +1356,7 @@ class PriceTimelineCard extends LitElement {
         dataIntervalls = this._getCheapPhasesPerDay(data);
     }
 
-    
+
     let cardContent;
     switch (this.config.view) {
       case "timeline":
@@ -1380,14 +1383,14 @@ class PriceTimelineCard extends LitElement {
            </ha-card>
          `;
   }
-  
+
   _onTap(ev) {
       const ignoreTags = ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA", "HA-SLIDER"];
       if (ignoreTags.includes(ev.target.tagName)) return;
-      if (ev.target.closest(".no-tap")) return; 
+      if (ev.target.closest(".no-tap")) return;
       this._handleAction("tap");
   }
-  
+
  _handleAction(actionType) {
       if (!this.config.tap_action || !this.config.tap_target) return;
       const event = new CustomEvent("hass-action", {
